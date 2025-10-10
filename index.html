@@ -83,7 +83,7 @@
     <!-- Header -->
     <header class="bg-black/50 backdrop-blur-sm sticky top-0 z-40">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="#" id="home-link" class="font-cinzel text-2xl font-bold tracking-widest text-white">MITOGRAFIAS</a>
+            <a href="#" id="home-link" class="font-cinzel text-lg sm:text-2xl font-bold tracking-widest text-white">MITOGRAFIAS</a>
             
             <!-- Desktop Nav -->
             <div class="hidden md:flex items-center space-x-8 text-sm uppercase tracking-wider">
@@ -344,8 +344,11 @@
                     const currentPagePair = document.getElementById(`page-${currentPageIndex}`);
                     currentPagePair.querySelector('.page-right').classList.add('flipped');
                     currentPagePair.style.zIndex = totalPages + currentPageIndex;
+                    // Oculta o par atual para revelar o próximo conteúdo no desktop
+                    currentPagePair.style.display = 'none';
                     currentPageIndex++;
-                    document.getElementById(`page-${currentPageIndex}`).style.display = 'block';
+                    const nextPair = document.getElementById(`page-${currentPageIndex}`);
+                    if (nextPair) nextPair.style.display = 'block';
                 }
             } else if (direction === 'prev' && currentPageIndex > 0) {
                  if (isMobile) {
@@ -357,6 +360,8 @@
                     prevPagePair.querySelector('.page-right').classList.remove('flipped');
                     document.getElementById(`page-${currentPageIndex}`).style.display = 'none';
                     currentPageIndex--;
+                    // Garante que o par anterior volte a aparecer ao retroceder no desktop
+                    if (prevPagePair) prevPagePair.style.display = 'block';
                 }
             }
             updateBookNavigation();
