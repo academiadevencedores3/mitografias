@@ -123,15 +123,15 @@
 
     <main id="main-content">
         <!-- Hero Section -->
-        <section id="hero-section" class="hero-bg h-[60vh] flex items-end text-white relative">
-            <div class="container mx-auto px-6 pb-16 text-center">
-                <h1 class="font-cinzel font-black text-4xl sm:text-5xl md:text-7xl leading-tight mb-4">A Sabedoria dos Antigos</h1>
+        <section id="hero-section" class="hero-bg h-[28vh] sm:h-[32vh] md:h-[36vh] lg:h-[40vh] flex items-center text-white relative">
+            <div class="container mx-auto px-6 pb-4 sm:pb-6 md:pb-8 text-center">
+                <h1 class="font-cinzel font-black uppercase text-[clamp(1rem,5.5vw,2.25rem)] sm:text-3xl md:text-5xl lg:text-6xl leading-snug mb-4 text-center tracking-tight">A SABEDORIA DOS ANTIGOS</h1>
                 <p class="text-base md:text-xl text-gray-300 max-w-3xl mx-auto">Navegue por um universo de deuses, heróis e monstros. Descubra as histórias que moldaram civilizações.</p>
             </div>
         </section>
 
         <!-- Container Dinâmico para Conteúdo -->
-        <div id="page-content" class="container mx-auto px-6 py-12">
+        <div id="page-content" class="container mx-auto px-6 pt-4 sm:pt-6 md:pt-10 pb-12">
             <!-- O conteúdo (destaques, categorias, etc.) será renderizado aqui -->
         </div>
     </main>
@@ -214,11 +214,15 @@
         function showHomePage() {
             const destaques = allStories.slice(0, 4); // Pega as 4 primeiras como destaque
             const egipcias = allStories.filter(s => s.categoria === 'Egípcia').slice(0,4);
+            const mesopotamicas = allStories.filter(s => s.categoria === 'Mesopotâmica').slice(0,4);
             const gregas = allStories.filter(s => s.categoria === 'Grega').slice(0,4);
+            const nordicas = allStories.filter(s => s.categoria === 'Nórdica').slice(0,4);
             pageContent.innerHTML = `
                 ${renderSection('Histórias em Destaque', destaques)}
                 ${renderSection('Mitos do Egito', egipcias)}
+                ${renderSection('Mitos da Mesopotâmia', mesopotamicas)}
                 ${renderSection('Contos da Grécia', gregas)}
+                ${renderSection('Contos Nórdicos', nordicas)}
             `;
             updateActiveLink();
             attachCardListeners();
@@ -373,7 +377,9 @@
 
         // --- NAVEGAÇÃO E EVENTOS ---
         function handleNavigation(hash) {
-            const category = hash.substring(1);
+            const raw = hash.startsWith('#') ? hash.slice(1) : hash;
+            const category = decodeURIComponent(raw);
+            if (!category) { showHomePage(); return; }
             if (category === 'infantil') showKidsPage();
             else if (category === 'dicas') showTipsPage();
             else if (['Egípcia', 'Mesopotâmica', 'Grega', 'Nórdica', 'Maia', 'Índia'].includes(category)) showCategoryPage(category);
