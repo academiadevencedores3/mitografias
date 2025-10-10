@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mitografias - Explore os Mitos do Mundo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- App Environment (via Serverless Function) -->
+    <script src="/api/env.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #121212; 
+            color: #E0E0E0;
+        }
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .hero-bg {
+            background-image: linear-gradient(to top, rgba(18,18,18,1) 0%, rgba(18,18,18,0.6) 70%, rgba(18,18,18,0.2) 100%), url('https://images.unsplash.com/photo-1588211477165-570cb6a459b1?q=80&w=2670&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center 30%;
+        }
+        .card-bg {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-bg:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+        .card-bg img {
+            transition: transform 0.3s ease;
+        }
+        .card-bg:hover img {
+            transform: scale(1.05);
+        }
+        .card-gradient {
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 60%);
+        }
+        .book-page {
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            transition: transform 0.5s;
+        }
+        .book-container.desktop-view .page-left {
+            transform-origin: right center;
+        }
+        .book-container.desktop-view .page-right {
+            transform-origin: left center;
+        }
+        .book-container.desktop-view .flipped {
+            transform: rotateY(-180deg);
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #D4AF37;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-black/50 backdrop-blur-sm sticky top-0 z-40">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" id="home-link" class="font-cinzel text-2xl font-bold tracking-widest text-white">MITOGRAFIAS</a>
+            
+            <!-- Desktop Nav -->
+            <div class="hidden md:flex items-center space-x-8 text-sm uppercase tracking-wider">
+                <a href="#Egípcia" class="nav-link category-link text-gray-300 hover:text-white">Egito</a>
+                <a href="#Mesopotâmica" class="nav-link category-link text-gray-300 hover:text-white">Mesopotâmia</a>
+                <a href="#Grega" class="nav-link category-link text-gray-300 hover:text-white">Grécia</a>
+                <a href="#Nórdica" class="nav-link category-link text-gray-300 hover:text-white">Nórdica</a>
+                <a href="#infantil" class="nav-link text-gray-300 hover:text-white">Infantil</a>
+                <a href="#dicas" class="nav-link text-gray-300 hover:text-white">Dicas</a>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="w-full md:w-auto max-w-xs">
+                     <input type="search" id="search-bar" placeholder="Buscar..." class="bg-gray-800/50 text-white text-sm rounded-full w-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-300">
+                </div>
+                <!-- Hamburger Button -->
+                <button id="mobile-menu-btn" class="md:hidden text-white p-2">
+                    <svg id="menu-open-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <svg id="menu-close-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-black/90 absolute w-full">
+            <a href="#Egípcia" class="mobile-nav-link block text-center text-gray-300 hover:bg-amber-800/50 py-3">Egito</a>
+            <a href="#Mesopotâmica" class="mobile-nav-link block text-center text-gray-300 hover:bg-amber-800/50 py-3">Mesopotâmia</a>
+            <a href="#Grega" class="mobile-nav-link block text-center text-gray-300 hover:bg-amber-800/50 py-3">Grécia</a>
+            <a href="#Nórdica" class="mobile-nav-link block text-center text-gray-300 hover:bg-amber-800/50 py-3">Nórdica</a>
+            <a href="#infantil" class="mobile-nav-link block text-center text-gray-300 hover:bg-amber-800/50 py-3">Infantil</a>
+            <a href="#dicas" class="mobile-nav-link block text-center text-gray-300 hover:bg-amber-800/50 py-3 border-t border-gray-700">Dicas</a>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <!-- Hero Section -->
+        <section id="hero-section" class="hero-bg h-[60vh] flex items-end text-white relative">
+            <div class="container mx-auto px-6 pb-16 text-center">
+                <h1 class="font-cinzel font-black text-4xl sm:text-5xl md:text-7xl leading-tight mb-4">A Sabedoria dos Antigos</h1>
+                <p class="text-base md:text-xl text-gray-300 max-w-3xl mx-auto">Navegue por um universo de deuses, heróis e monstros. Descubra as histórias que moldaram civilizações.</p>
+            </div>
+        </section>
+
+        <!-- Container Dinâmico para Conteúdo -->
+        <div id="page-content" class="container mx-auto px-6 py-12">
+            <!-- O conteúdo (destaques, categorias, etc.) será renderizado aqui -->
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-800">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-400">
+            <p class="font-cinzel text-lg">MITOGRAFIAS</p>
+            <p class="text-sm mt-2">&copy; 2024 - Todos os direitos reservados. Um portal para a exploração mitológica.</p>
+        </div>
+    </footer>
+
+    <!-- Modal do Livro Digital -->
+    <div id="book-modal" class="fixed inset-0 bg-black/80 hidden z-50 p-4 items-center justify-center">
+        <div id="book-container" class="w-full h-full max-w-6xl max-h-[85vh] flex items-center justify-center relative">
+            <!-- As páginas do livro serão inseridas aqui -->
+        </div>
+        <button id="close-book-btn" class="absolute top-2 right-2 md:top-4 md:right-4 text-white text-4xl hover:text-amber-400 transition z-50">&times;</button>
+        <button id="prev-page-btn" class="absolute left-0 md:left-4 top-1/2 -translate-y-1/2 text-white text-5xl hover:text-amber-400 transition z-50">&lsaquo;</button>
+        <button id="next-page-btn" class="absolute right-0 md:right-4 top-1/2 -translate-y-1/2 text-white text-5xl hover:text-amber-400 transition z-50">&rsaquo;</button>
+    </div>
+
+    <script>
+        // --- CONFIGURAÇÃO E INICIALIZAÇÃO ---
+        const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__ENV || {};
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            console.error('Variáveis de ambiente do Supabase não configuradas.');
+        }
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // --- ELEMENTOS DO DOM ---
+        const pageContent = document.getElementById('page-content');
+        const searchBar = document.getElementById('search-bar');
+        const bookModal = document.getElementById('book-modal');
+        const bookContainer = document.getElementById('book-container');
+        const closeBookBtn = document.getElementById('close-book-btn');
+        const prevPageBtn = document.getElementById('prev-page-btn');
+        const nextPageBtn = document.getElementById('next-page-btn');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuOpenIcon = document.getElementById('menu-open-icon');
+        const menuCloseIcon = document.getElementById('menu-close-icon');
+
+        // --- ESTADO DA APLICAÇÃO ---
+        let allStories = [];
+        let allTips = [];
+        let currentPages = [];
+        let currentPageIndex = 0;
+        let isMobile = window.innerWidth < 768;
+        let currentOpenStoryId = null;
+
+        // --- FUNÇÕES DE RENDERIZAÇÃO ---
+        function createStoryCard(story) {
+            return `
+                <div data-story-id="${story.id}" class="story-card cursor-pointer group card-bg bg-gray-900 rounded-lg shadow-lg">
+                    <img src="${story.url_imagem_capa || 'https://placehold.co/1280x720/1a1a1a/e0e0e0?text=Mito'}" alt="Capa de ${story.titulo}" class="w-full h-full object-cover aspect-video">
+                    <div class="absolute inset-0 card-gradient flex flex-col justify-end p-4">
+                        <h3 class="font-cinzel text-lg md:text-xl font-bold text-white">${story.titulo}</h3>
+                        <p class="text-gray-300 text-sm mt-1 line-clamp-2">${story.resumo || ''}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderSection(title, stories, options = {}) {
+            const storiesHtml = stories.length > 0
+                ? stories.map(createStoryCard).join('')
+                : `<p class="text-gray-400 col-span-full text-center">${options.emptyMessage || 'Nenhuma história encontrada nesta seção.'}</p>`;
+            
+            return `
+                <section class="mb-16">
+                    <h2 class="font-cinzel text-2xl md:text-3xl font-bold border-b-2 border-amber-600/50 pb-2 mb-8">${title}</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                        ${storiesHtml}
+                    </div>
+                </section>
+            `;
+        }
+
+        function showHomePage() {
+            const destaques = allStories.slice(0, 4); // Pega as 4 primeiras como destaque
+            const egipcias = allStories.filter(s => s.categoria === 'Egípcia').slice(0,4);
+            const gregas = allStories.filter(s => s.categoria === 'Grega').slice(0,4);
+            pageContent.innerHTML = `
+                ${renderSection('Histórias em Destaque', destaques)}
+                ${renderSection('Mitos do Egito', egipcias)}
+                ${renderSection('Contos da Grécia', gregas)}
+            `;
+            updateActiveLink();
+            attachCardListeners();
+        }
+        
+        function showCategoryPage(category) {
+            const completas = allStories.filter(s => s.categoria === category && s.tipo === 'completa');
+            const resumidas = allStories.filter(s => s.categoria === category && s.tipo === 'resumida');
+            pageContent.innerHTML = `
+                <h1 class="font-cinzel text-3xl md:text-4xl text-center font-bold mb-12">Mitologia ${category}</h1>
+                ${renderSection('Histórias Completas', completas)}
+                ${renderSection('Histórias Resumidas', resumidas)}
+            `;
+            updateActiveLink(category);
+            attachCardListeners();
+        }
+        
+        function showKidsPage() {
+            const kidsStories = allStories.filter(s => s.infantil);
+            pageContent.innerHTML = `
+                <div class="text-center mb-12">
+                     <h1 class="font-cinzel text-3xl md:text-4xl font-bold">Cantinho Infantil</h1>
+                     <p class="text-gray-400 mt-2">Histórias e mitos para os pequenos aventureiros!</p>
+                </div>
+                ${renderSection('Mitos para Crianças', kidsStories, {emptyMessage: 'Ainda não temos histórias infantis. Volte em breve!'})}
+            `;
+            updateActiveLink('infantil');
+            attachCardListeners();
+        }
+        
+        function showTipsPage() {
+             pageContent.innerHTML = `
+                <div class="text-center mb-12">
+                     <h1 class="font-cinzel text-3xl md:text-4xl font-bold">Dicas e Brincadeiras</h1>
+                     <p class="text-gray-400 mt-2">Atividades inspiradas nos mitos para fazer em família.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    ${allTips.length > 0 ? allTips.map(tip => `
+                        <div class="bg-gray-800 p-6 rounded-lg">
+                             <h3 class="font-cinzel font-bold text-xl text-amber-400">${tip.titulo}</h3>
+                             <p class="text-gray-300 mt-2">${tip.descricao}</p>
+                        </div>
+                    `).join('') : '<p class="text-gray-400 col-span-full text-center">Nenhuma dica encontrada.</p>'}
+                </div>
+            `;
+            updateActiveLink('dicas');
+        }
+
+        // --- LÓGICA DO LIVRO DIGITAL ---
+        
+        function createBookPages(story) {
+            const pages = [];
+            pages.push(`<div class="w-full h-full bg-gray-900 rounded-r-lg flex items-center justify-center p-8 flex-col text-center"><img src="${story.url_imagem_capa}" class="max-h-[60%] object-contain rounded-md shadow-lg" alt="Capa"><h2 class="font-cinzel text-3xl mt-6 font-bold text-white">${story.titulo}</h2></div>`);
+            pages.push(`<div class="w-full h-full bg-gray-100 text-gray-800 rounded-lg p-8 md:p-12 overflow-y-auto"><h3 class="font-cinzel text-2xl font-bold mb-4">Introdução</h3><div class="prose max-w-none">${story.introducao}</div></div>`);
+
+            story.paginas.sort((a, b) => a.numero_pagina - b.numero_pagina).forEach(p => {
+                const imagePositionStyle = p.imagem_posicao ? `object-position: ${p.imagem_posicao};` : '';
+                const imageHtml = p.url_imagem ? `<img src="${p.url_imagem}" class="w-full h-48 object-cover rounded-md mb-4 shadow-md" style="${imagePositionStyle}">` : '';
+                pages.push(`<div class="w-full h-full bg-gray-100 text-gray-800 rounded-lg p-8 md:p-12 overflow-y-auto">${imageHtml}<div class="prose max-w-none">${p.conteudo}</div></div>`);
+            });
+            
+            pages.push(`<div class="w-full h-full bg-gray-100 text-gray-800 rounded-lg p-8 md:p-12 overflow-y-auto"><h3 class="font-cinzel text-2xl font-bold mb-4">Conclusão</h3><div class="prose max-w-none">${story.conclusao}</div></div>`);
+            pages.push(`<div class="w-full h-full bg-gray-100 text-gray-800 rounded-lg p-8 md:p-12 overflow-y-auto"><h3 class="font-cinzel text-2xl font-bold mb-4">Fontes</h3><div class="prose max-w-none">${story.fontes}</div></div>`);
+            
+            if (!isMobile) {
+                pages.push(`<div class="w-full h-full bg-gray-900 rounded-l-lg"></div>`);
+            }
+            return pages;
+        }
+
+        function renderBook() {
+            bookContainer.innerHTML = '';
+            bookContainer.classList.toggle('desktop-view', !isMobile);
+            bookContainer.classList.toggle('overflow-y-auto', isMobile);
+            if(!isMobile) bookContainer.classList.add('perspective-2000');
+            
+            if (isMobile) {
+                currentPages.forEach((pageHtml, index) => {
+                    const pageWrapper = document.createElement('div');
+                    pageWrapper.id = `page-${index}`;
+                    pageWrapper.className = 'w-full h-full';
+                    pageWrapper.style.display = index === currentPageIndex ? 'block' : 'none';
+                    pageWrapper.innerHTML = pageHtml;
+                    const innerPage = pageWrapper.children[0];
+                    if (innerPage) {
+                        innerPage.classList.remove('rounded-r-lg', 'rounded-l-lg');
+                        innerPage.classList.add('rounded-lg');
+                    }
+                    bookContainer.appendChild(pageWrapper);
+                });
+            } else {
+                let pageHtml = '';
+                for (let i = 0; i < currentPages.length; i += 2) {
+                    const pageLeftContent = currentPages[i];
+                    const pageRightContent = (i + 1 < currentPages.length) ? currentPages[i + 1] : '<div class="w-full h-full bg-gray-100 rounded-lg"></div>';
+                    pageHtml += `<div id="page-${i / 2}" class="absolute w-full h-full" style="z-index: ${currentPages.length - i}; display: ${i === 0 ? 'block' : 'none'};">
+                        <div class="absolute w-1/2 h-full left-0 top-0 page-left">${pageLeftContent}</div>
+                        <div class="absolute w-1/2 h-full right-0 top-0 page-right">${pageRightContent}</div>
+                    </div>`;
+                }
+                bookContainer.innerHTML = pageHtml;
+            }
+        }
+
+        function updateBookNavigation() {
+            const totalPages = isMobile ? currentPages.length : Math.ceil(currentPages.length / 2);
+            prevPageBtn.style.display = currentPageIndex > 0 ? 'block' : 'none';
+            nextPageBtn.style.display = currentPageIndex < totalPages - 1 ? 'block' : 'none';
+        }
+
+        function turnPage(direction) {
+            const totalPages = isMobile ? currentPages.length : Math.ceil(currentPages.length / 2);
+            if (direction === 'next' && currentPageIndex < totalPages - 1) {
+                if (isMobile) {
+                    document.getElementById(`page-${currentPageIndex}`).style.display = 'none';
+                    currentPageIndex++;
+                    document.getElementById(`page-${currentPageIndex}`).style.display = 'block';
+                } else {
+                    const currentPagePair = document.getElementById(`page-${currentPageIndex}`);
+                    currentPagePair.querySelector('.page-right').classList.add('flipped');
+                    currentPagePair.style.zIndex = totalPages + currentPageIndex;
+                    currentPageIndex++;
+                    document.getElementById(`page-${currentPageIndex}`).style.display = 'block';
+                }
+            } else if (direction === 'prev' && currentPageIndex > 0) {
+                 if (isMobile) {
+                    document.getElementById(`page-${currentPageIndex}`).style.display = 'none';
+                    currentPageIndex--;
+                    document.getElementById(`page-${currentPageIndex}`).style.display = 'block';
+                } else {
+                    const prevPagePair = document.getElementById(`page-${currentPageIndex - 1}`);
+                    prevPagePair.querySelector('.page-right').classList.remove('flipped');
+                    document.getElementById(`page-${currentPageIndex}`).style.display = 'none';
+                    currentPageIndex--;
+                }
+            }
+            updateBookNavigation();
+        }
+
+        async function openBookModal(storyId) {
+            currentOpenStoryId = storyId;
+            isMobile = window.innerWidth < 768;
+            const { data: story, error } = await supabaseClient.from('mitos').select('*, paginas(*)').eq('id', storyId).single();
+            if (error) { console.error("Erro ao buscar história:", error); return; }
+
+            currentPages = createBookPages(story);
+            currentPageIndex = 0;
+            renderBook();
+            updateBookNavigation();
+            bookModal.style.display = 'flex';
+        }
+
+        // --- NAVEGAÇÃO E EVENTOS ---
+        function handleNavigation(hash) {
+            const category = hash.substring(1);
+            if (category === 'infantil') showKidsPage();
+            else if (category === 'dicas') showTipsPage();
+            else if (['Egípcia', 'Mesopotâmica', 'Grega', 'Nórdica', 'Maia', 'Índia'].includes(category)) showCategoryPage(category);
+            else showHomePage();
+        }
+
+        function updateActiveLink(active) {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active', 'text-white');
+                if (link.getAttribute('href').substring(1) === active) {
+                    link.classList.add('active', 'text-white');
+                }
+            });
+        }
+        
+        function attachCardListeners() {
+            document.querySelectorAll('.story-card').forEach(card => {
+                card.addEventListener('click', () => openBookModal(card.dataset.storyId));
+            });
+        }
+
+        async function init() {
+            const { data: storiesData, error: storiesError } = await supabaseClient.from('mitos').select('*').eq('publicado', true).order('criado_em', { ascending: false });
+            if (storiesError) {
+                console.error("Erro ao buscar histórias:", storiesError);
+                pageContent.innerHTML = `<p class="text-center text-red-400">Não foi possível carregar as histórias.</p>`;
+                return;
+            }
+            allStories = storiesData;
+            const { data: tipsData, error: tipsError } = await supabaseClient.from('dicas_brincadeiras').select('*');
+            if (tipsError) console.error("Erro ao buscar dicas:", tipsError);
+            allTips = tipsData || [];
+            handleNavigation(window.location.hash || '#');
+        }
+
+        // --- LISTENERS GLOBAIS ---
+        document.addEventListener('DOMContentLoaded', init);
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            menuOpenIcon.classList.toggle('hidden');
+            menuCloseIcon.classList.toggle('hidden');
+        });
+
+        document.querySelectorAll('.nav-link, #home-link, .mobile-nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const hash = new URL(e.currentTarget.href).hash;
+                history.pushState(null, '', hash);
+                handleNavigation(hash);
+                if (mobileMenu.classList.contains('hidden') === false) {
+                    mobileMenu.classList.add('hidden');
+                    menuOpenIcon.classList.remove('hidden');
+                    menuCloseIcon.classList.add('hidden');
+                }
+            });
+        });
+
+        window.addEventListener('popstate', () => handleNavigation(window.location.hash));
+
+        searchBar.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            if (searchTerm.length > 2) {
+                const filteredStories = allStories.filter(story => story.titulo.toLowerCase().includes(searchTerm));
+                pageContent.innerHTML = renderSection(`Resultados para "${e.target.value}"`, filteredStories);
+                attachCardListeners();
+            } else if (searchTerm.length === 0) {
+                 handleNavigation(window.location.hash || '#');
+            }
+        });
+        
+        closeBookBtn.addEventListener('click', () => {
+            bookModal.style.display = 'none';
+            currentOpenStoryId = null;
+        });
+        nextPageBtn.addEventListener('click', () => turnPage('next'));
+        prevPageBtn.addEventListener('click', () => turnPage('prev'));
+
+        window.addEventListener('resize', () => {
+            const newIsMobile = window.innerWidth < 768;
+            if (newIsMobile !== isMobile && bookModal.style.display === 'flex') {
+                isMobile = newIsMobile;
+                openBookModal(currentOpenStoryId); // Re-renderiza o livro aberto
+            }
+        });
+    </script>
+</body>
+</html>
+
