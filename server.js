@@ -25,7 +25,10 @@ const mimeTypes = {
 };
 
 const server = http.createServer((req, res) => {
-  if (req.url === '/api/env.js') {
+  // Normaliza a URL para ignorar querystring
+  const pathname = req.url.split('?')[0];
+
+  if (pathname === '/api/env.js') {
     const payload = { SUPABASE_URL, SUPABASE_ANON_KEY };
     res.writeHead(200, {
       'Content-Type': 'application/javascript; charset=utf-8',
@@ -40,7 +43,7 @@ const server = http.createServer((req, res) => {
   }
 
   // Serve arquivos estáticos
-  let filePath = req.url.split('?')[0];
+  let filePath = pathname;
   if (filePath === '/' || filePath === '') filePath = '/index.html';
   const fullPath = path.join(__dirname, filePath);
 

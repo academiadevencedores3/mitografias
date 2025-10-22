@@ -436,36 +436,52 @@
             bookModal.style.display = 'flex';
         }
 
-        function openVideoModal(story) {
-            if (!story.url_video) return;
+        function openVideoModal(storyId) {
+            const story = allStories.find(s => s.id === Number(storyId) || s.id === storyId);
+            if (!story || !story.url_video) return;
 
-            let videoId = '';
+            let videoId = null;
             try {
                 const url = new URL(story.url_video);
-                if (url.hostname === 'youtu.be') {
+                const host = url.hostname.replace('www.', '');
+                if (host === 'youtu.be') {
+                    // youtu.be/<id>
                     videoId = url.pathname.slice(1);
-                } else if (url.hostname === 'www.youtube.com' || url.hostname === 'youtube.com') {
+                } else if (host === 'youtube.com') {
+                    // youtube.com/watch?v=<id>
                     videoId = url.searchParams.get('v');
+                    // Suporte extra: /shorts/<id> e /embed/<id>
+                    if (!videoId && url.pathname.startsWith('/shorts/')) {
+                        videoId = url.pathname.split('/')[2] || null;
+                    }
+                    if (!videoId && url.pathname.startsWith('/embed/')) {
+                        videoId = url.pathname.split('/')[2] || null;
+                    }
                 }
             } catch (e) {
-                console.error('URL de vídeo inválida:', story.url_video);
-                return;
+                // Fallback por regex (watch e youtu.be)
+                const m1 = story.url_video.match(/[?&]v=([^&#]+)/); // watch?v=
+                const m2 = story.url_video.match(/youtu\.be\/([^?&#]+)/); // youtu.be/<id>
+                const m3 = story.url_video.match(/\/shorts\/([^?&#]+)/); // shorts/<id>
+                const m4 = story.url_video.match(/\/embed\/([^?&#]+)/); // embed/<id>
+                videoId = (m1 && m1[1]) || (m2 && m2[1]) || (m3 && m3[1]) || (m4 && m4[1]) || null;
             }
 
             if (!videoId) {
-                console.error('Não foi possível extrair o ID do vídeo da URL:', story.url_video);
+                alert('URL de vídeo inválida');
                 return;
             }
 
-            const aspectRatio = story.formato_video === '9:16' ? 'aspect-[9/16]' : 'aspect-[16/9]';
+            const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+            const aspectStyle = story.formato_video === '9:16' ? 'aspect-ratio: 9 / 16;' : 'aspect-ratio: 16 / 9;';
+
             const videoContainer = document.getElementById('video-container');
-            
             videoContainer.innerHTML = `
-                <div class="w-full ${aspectRatio} mx-auto bg-black rounded-lg overflow-hidden">
+                <div class="w-full mx-auto bg-black rounded-lg overflow-hidden" style="${aspectStyle}">
                     <iframe
-                        class="w-full h-full"
-                        src="https://www.youtube.com/embed/${videoId}?autoplay=1"
+                        src="${embedUrl}"
                         title="YouTube video player"
+                        style="width: 100%; height: 100%;"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         allowfullscreen
@@ -503,7 +519,8 @@
                     const storyId = card.dataset.storyId;
                     const story = allStories.find(s => s.id == storyId);
                     if (story && story.tipo === 'video') {
-                        openVideoModal(story);
+                        // Corrige: passar o ID para a função
+                        openVideoModal(storyId);
                     } else {
                         openBookModal(storyId);
                     }
